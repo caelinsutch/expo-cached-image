@@ -19,8 +19,12 @@ const CachedImage: React.FC<CachedImageProps> = ({ source, ...props }) => {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
+  // https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript
+  const hashCode = (s: string) =>
+    s.split("").reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0);
+
   const getImageFilesystemKey = async (remoteURI: string) =>
-    `${FileSystem.documentDirectory}${remoteURI}`;
+    `${FileSystem.documentDirectory}${hashCode(remoteURI)}`;
 
   const checkClear = async () => {
     try {
@@ -78,7 +82,6 @@ const CachedImage: React.FC<CachedImageProps> = ({ source, ...props }) => {
         }
       }
     } catch (err) {
-      console.log("Image download error:", err);
       if (mounted) {
         setImageUri(null);
       }
@@ -99,6 +102,7 @@ const CachedImage: React.FC<CachedImageProps> = ({ source, ...props }) => {
 
     return () => {
       if (interaction) interaction.cancel();
+      if (downloadResumable) downloadResumable._removeSubscription();
       setMounted(false);
       checkClear();
     };
@@ -113,5 +117,3 @@ const CachedImage: React.FC<CachedImageProps> = ({ source, ...props }) => {
 };
 
 export default CachedImage;
-
-// export dej
